@@ -33,8 +33,13 @@ All branch names should be lowercase and use hyphens `-` to separate words.
 
 ### Express & MongoDB Specifics:
 
-* **Models:** Use `PascalCase` and singular names (e.g., `Post`, not `Posts`).
-* **Controllers**: Name them based on the resource (e.g., `appointmentController.js`).
+* **Models:**  
+  Use **PascalCase** and **singular names** for model names (e.g., `Post`, not `Posts`).  
+  File naming should follow **dot naming**:
+ (e.g., `post.model.js`, not `posts.model.js`).
+* **Controllers:**  
+Name controllers based on the **resource name** and use **dot naming**:
+ (e.g., `appointment.controller.js`).
 * **Middleware**: Use descriptive verbs (e.g., `validateToken.js` or `is_admin.js`).
 * **Routes**: Always pluralize the resource in the URL (e.g., `/api/v1/appointments`).
 
