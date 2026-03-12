@@ -48,4 +48,10 @@ const verifyAccount = catchError(async (req, res) => {
     res.status(200).json({ message: "Account Verified Successfully" });
   });
 });
-export { listUsers, signIn, signUp, verifyAccount };
+
+const getUserAdmin = catchError(async (req, res) => {
+  let id = req.params.id;
+  let user = await userModel.find({ _id: id });
+  res.json({ message: "User retrieved successfully", user });
+});
+export { listUsers, signIn, signUp, verifyAccount, getUserAdmin };
