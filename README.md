@@ -18,7 +18,7 @@ MONGODB_URI=mongodb://127.0.0.1:27017/ecommerce_db
 3. Run the app:
 
 ```bash
-npm run dev
+npm start
 ```
 
 ## Project Structure
