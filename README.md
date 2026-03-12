@@ -23,7 +23,7 @@ npm start
 
 ## Project Structure
 
-- `Database/` - database connection logic (`connect_db.js`) and Mongoose models in `Database/Models/` (e.g. `User`, `Product`, `Order`).
-- `Modules/` - route handlers / business logic per domain (e.g. `auth`, `products`).
+- `Database/` - database connection logic (`connect_db.js`).
+- `Modules/` - route handlers / business logic per domain (e.g. `auth`, `products`) / Mongoose models (e.g. `User`, `Product`, `Order`).
 - `Middleware/` - custom Express middleware (e.g. auth, error handling).
 - `index.js` - application entry point.
