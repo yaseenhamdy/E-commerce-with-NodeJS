@@ -5,6 +5,7 @@ import {
   signUp,
   verifyAccount,
   getUserAdmin,
+  restrictUserAdmin,
 } from "./user.controller.js";
 import checkEmail from "../../Middleware/checkEmail.js";
 import hashPassword from "../../Middleware/hashPassword.js";
@@ -16,6 +17,12 @@ let userRoutes = express.Router();
 
 userRoutes.get("/users", verifyToken, authorize(ROLES.ADMIN), listUsers);
 userRoutes.get("/users/:id", verifyToken, authorize(ROLES.ADMIN), getUserAdmin);
+userRoutes.patch(
+  "/users/:id/restrict",
+  verifyToken,
+  authorize(ROLES.ADMIN),
+  restrictUserAdmin,
+);
 userRoutes.post("/auth/signin", checkEmail, signIn);
 userRoutes.post(
   "/auth/signup",

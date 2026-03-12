@@ -44,7 +44,10 @@ const verifyAccount = catchError(async (req, res) => {
     }
     // user --> isConfirmed = true
     console.log(decoded);
-    await userModel.findOneAndUpdate({ email: decoded }, { isConfirmed: true });
+    await userModel.findOneAndUpdate(
+      { email: decoded },
+      { isEmailVerified: true },
+    );
     res.status(200).json({ message: "Account Verified Successfully" });
   });
 });
@@ -54,4 +57,21 @@ const getUserAdmin = catchError(async (req, res) => {
   let user = await userModel.find({ _id: id });
   res.json({ message: "User retrieved successfully", user });
 });
-export { listUsers, signIn, signUp, verifyAccount, getUserAdmin };
+
+const restrictUserAdmin = catchError(async (req, res) => {
+  let id = req.params.id;
+  const user = await userModel.findByIdAndUpdate(
+    id,
+    { isActive: false },
+    { new: true },
+  );
+  res.json({ message: "User restricted successfully", user });
+});
+export {
+  listUsers,
+  signIn,
+  signUp,
+  verifyAccount,
+  getUserAdmin,
+  restrictUserAdmin,
+};
