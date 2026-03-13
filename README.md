@@ -13,6 +13,9 @@ npm install
 ```env
 PORT=5000
 MONGODB_URI=mongodb://127.0.0.1:27017/ecommerce_db
+EMAIL_USER='test@gmail.com'
+APP_KEY='1111 2222 3333 4444'
+JWT_SECRET="key"
 ```
 
 3. Run the app:
