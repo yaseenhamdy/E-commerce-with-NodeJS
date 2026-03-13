@@ -87,14 +87,30 @@ const getUserAdmin = catchError(async (req, res) => {
 });
 
 const restrictUserAdmin = catchError(async (req, res) => {
-  let id = req.params.id;
+  const { id } = req.params;
+  const { isActive } = req.body;
+
+  if (typeof isActive !== "boolean") {
+    return res.status(400).json({
+      message: "isActive must be a boolean value",
+    });
+  }
+
   const user = await userModel.findByIdAndUpdate(
     id,
-    { isActive: false },
+    { isActive },
     { new: true },
   );
-  if (!user) throw new Error("User not found");
-  res.json({ message: "User restricted successfully", user });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const message = isActive
+    ? "User activated successfully"
+    : "User restricted successfully";
+
+  res.json({ message, user });
 });
 
 const deleteUserAdmin = catchError(async (req, res) => {
