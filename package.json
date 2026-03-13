@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "E-commerce API using Node.js, Express, and MongoDB",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
