@@ -69,7 +69,8 @@ const verifyAccount = catchError(async (req, res) => {
 
 const getUserAdmin = catchError(async (req, res) => {
   let id = req.params.id;
-  let user = await userModel.find({ _id: id });
+  let user = await userModel.findById(id);
+  if (!user) throw new Error("User not found");
   res.json({ message: "User retrieved successfully", user });
 });
 
@@ -80,6 +81,7 @@ const restrictUserAdmin = catchError(async (req, res) => {
     { isActive: false },
     { new: true },
   );
+  if (!user) throw new Error("User not found");
   res.json({ message: "User restricted successfully", user });
 });
 

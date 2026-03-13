@@ -1,7 +1,7 @@
 import Joi from "joi";
 
 // Signup: for customers & sellers only
-const userValidationSchema = Joi.object({
+export const userValidationSchema = Joi.object({
   firstName: Joi.string().min(3).max(10).required().messages({
     "string.min": "First Name must be at least 3 characters long",
     "string.empty": "First Name is required",

@@ -11,13 +11,16 @@ import {
   getUserProfile,
   updateUserProfile,
 } from "./user.controller.js";
+import {
+  adminSignupSchema,
+  userProfileUpdateSchema,
+  userValidationSchema,
+} from "./user.validation.js";
 import checkEmail from "../../Middleware/checkEmail.js";
 import hashPassword from "../../Middleware/hashPassword.js";
 import verifyToken from "../../Middleware/verifyToken.js";
 import authorize from "../../Middleware/authorization.js";
-import validationSignup from "../../Middleware/validationSignup.js";
-import validationProfileUpdate from "../../Middleware/validationProfileUpdate.js";
-import validationAdminSignup from "../../Middleware/validationAdminSignup.js";
+import validationMiddleware from "../../Middleware/validationMiddleware.js";
 import { ROLES } from "../../Constants/roles.js";
 let userRoutes = express.Router();
 
@@ -25,7 +28,7 @@ userRoutes.get("/user/profile", verifyToken, getUserProfile);
 userRoutes.put(
   "/user/profile",
   verifyToken,
-  validationProfileUpdate,
+  validationMiddleware(userProfileUpdateSchema),
   hashPassword,
   updateUserProfile,
 );
@@ -47,7 +50,7 @@ userRoutes.delete(
 userRoutes.post("/auth/signin", checkEmail, signIn);
 userRoutes.post(
   "/auth/signup",
-  validationSignup,
+  validationMiddleware(userValidationSchema),
   checkEmail,
   hashPassword,
   signUp,
@@ -56,7 +59,7 @@ userRoutes.post(
   "/auth/admin/signup",
   verifyToken,
   authorize(ROLES.ADMIN),
-  validationAdminSignup,
+  validationMiddleware(adminSignupSchema),
   hashPassword,
   adminSignUp,
 );
