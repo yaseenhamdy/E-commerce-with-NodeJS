@@ -27,7 +27,7 @@ const signIn = catchError(async (req, res) => {
   if (matchPassword) {
     const token = jwt.sign(
       { _id: foundUser._id, role: foundUser.role, email: foundUser.email },
-      "iti",
+      process.env.JWT_SECRET,
     );
 
     foundUser.password = undefined;
