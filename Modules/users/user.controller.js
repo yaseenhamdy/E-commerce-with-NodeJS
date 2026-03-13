@@ -11,15 +11,27 @@ const listUsers = catchError(async (req, res) => {
 });
 
 const signIn = catchError(async (req, res) => {
-  let foundUser = req.foundUser;
-  let matchPassword = bcrypt.compareSync(req.body.password, foundUser.password);
+  const foundUser = req.foundUser;
+
+  if (!foundUser.isActive) {
+    return res.status(403).json({
+      message: "Your account has been restricted. Please contact support.",
+    });
+  }
+
+  const matchPassword = bcrypt.compareSync(
+    req.body.password,
+    foundUser.password,
+  );
 
   if (matchPassword) {
-    let token = jwt.sign(
+    const token = jwt.sign(
       { _id: foundUser._id, role: foundUser.role, email: foundUser.email },
       "iti",
     );
+
     foundUser.password = undefined;
+
     res.json({
       message: "User signed in successfully",
       user: foundUser,
