@@ -3,6 +3,7 @@ import morgan from "morgan";
 import cors from "cors";
 import "dotenv/config";
 import userRoutes from "./Modules/users/user.routes.js";
+import cartRoutes from "./Modules/carts/cart.routes.js";
 
 import connectDB from "./Database/connect_db.js";
 import { runSeedUsers } from "./seed_data/seedUsers.js";
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 app.use(userRoutes);
+app.use(cartRoutes);
 
 // Basic health check route
 app.get("/", (req, res) => {
