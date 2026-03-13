@@ -1,7 +1,9 @@
 import bcrypt from "bcrypt";
 
 let hashPassword = (req, res, next) => {
-  req.body.password = bcrypt.hashSync(req.body.password, 8);
+  if (req.body.password) {
+    req.body.password = bcrypt.hashSync(req.body.password, 8);
+  }
   next();
 };
 

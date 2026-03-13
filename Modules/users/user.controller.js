@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../../Email/email.js";
 import catchError from "../../Middleware/catchError.js";
+import { ROLES } from "../../Constants/roles.js";
 
 const listUsers = catchError(async (req, res) => {
   let users = await userModel.find();
@@ -34,6 +35,20 @@ const signUp = catchError(async (req, res) => {
   await sendEmail(req.body.email);
   addUser.password = undefined;
   res.json({ message: "User signed up successfully", user: addUser });
+});
+
+const adminSignUp = catchError(async (req, res) => {
+  const existing = await userModel.findOne({ email: req.body.email });
+  if (existing) throw new Error("Email already exists");
+
+  const createdAdmin = await userModel.create({
+    ...req.body,
+    role: ROLES.ADMIN,
+  });
+
+  await sendEmail(createdAdmin.email);
+  createdAdmin.password = undefined;
+  res.json({ message: "Admin signed up successfully", user: createdAdmin });
 });
 
 const verifyAccount = catchError(async (req, res) => {
@@ -73,12 +88,77 @@ const deleteUserAdmin = catchError(async (req, res) => {
   const user = await userModel.findByIdAndDelete(id);
   res.json({ message: "User deleted successfully" });
 });
+
+const getUserProfile = catchError(async (req, res) => {
+  const user = await userModel.findById(req.user._id);
+  if (!user) throw new Error("User not found");
+  user.password = undefined;
+  res.json({ message: "Profile retrieved successfully", user });
+});
+
+const updateUserProfile = catchError(async (req, res) => {
+  const allowedFields = [
+    "firstName",
+    "lastName",
+    "email",
+    "phoneNumber",
+    "password",
+    "role",
+    "storeName",
+    "storeDescription",
+  ];
+
+  const updates = {};
+  for (const key of allowedFields) {
+    if (req.body[key] !== undefined) updates[key] = req.body[key];
+  }
+
+  const currentUser = await userModel.findById(req.user._id);
+  if (!currentUser) throw new Error("User not found");
+
+  const emailChanged =
+    updates.email &&
+    updates.email.toLowerCase() !== currentUser.email.toLowerCase();
+
+  if (updates.email) {
+    const conflict = await userModel.findOne({
+      email: updates.email,
+      _id: { $ne: req.user._id },
+    });
+    if (conflict) throw new Error("Email already exists");
+  }
+
+  if (emailChanged) {
+    updates.isEmailVerified = false;
+  }
+
+  const user = await userModel.findByIdAndUpdate(req.user._id, updates, {
+    new: true,
+    runValidators: true,
+  });
+  if (!user) throw new Error("User not found");
+
+  if (emailChanged) {
+    sendEmail(user.email).catch(() => {});
+  }
+
+  user.password = undefined;
+  res.json({
+    message: emailChanged
+      ? "Profile updated successfully. Please verify your new email."
+      : "Profile updated successfully",
+    user,
+  });
+});
 export {
   listUsers,
   signIn,
   signUp,
+  adminSignUp,
   verifyAccount,
   getUserAdmin,
   restrictUserAdmin,
   deleteUserAdmin,
+  getUserProfile,
+  updateUserProfile,
 };
