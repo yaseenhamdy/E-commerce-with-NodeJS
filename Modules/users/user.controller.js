@@ -43,7 +43,7 @@ const signIn = catchError(async (req, res) => {
 });
 
 const signUp = catchError(async (req, res) => {
-  let addUser = await userModel.insertOne(req.body);
+  let addUser = await userModel.create(req.body);
   await sendEmail(req.body.email);
   addUser.password = undefined;
   res.json({ message: "User signed up successfully", user: addUser });
@@ -51,7 +51,9 @@ const signUp = catchError(async (req, res) => {
 
 const adminSignUp = catchError(async (req, res) => {
   const existing = await userModel.findOne({ email: req.body.email });
-  if (existing) throw new Error("Email already exists");
+  if (existing) {
+    return res.status(409).json({ message: "Email already exists" });
+  }
 
   const createdAdmin = await userModel.create({
     ...req.body,
@@ -82,7 +84,9 @@ const verifyAccount = catchError(async (req, res) => {
 const getUserAdmin = catchError(async (req, res) => {
   let id = req.params.id;
   let user = await userModel.findById(id);
-  if (!user) throw new Error("User not found");
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
   res.json({ message: "User retrieved successfully", user });
 });
 
@@ -103,7 +107,7 @@ const restrictUserAdmin = catchError(async (req, res) => {
   );
 
   if (!user) {
-    throw new Error("User not found");
+    return res.status(404).json({ message: "User not found" });
   }
 
   const message = isActive
@@ -116,12 +120,17 @@ const restrictUserAdmin = catchError(async (req, res) => {
 const deleteUserAdmin = catchError(async (req, res) => {
   let id = req.params.id;
   const user = await userModel.findByIdAndDelete(id);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
   res.json({ message: "User deleted successfully" });
 });
 
 const getUserProfile = catchError(async (req, res) => {
   const user = await userModel.findById(req.user._id);
-  if (!user) throw new Error("User not found");
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
   user.password = undefined;
   res.json({ message: "Profile retrieved successfully", user });
 });
@@ -144,7 +153,9 @@ const updateUserProfile = catchError(async (req, res) => {
   }
 
   const currentUser = await userModel.findById(req.user._id);
-  if (!currentUser) throw new Error("User not found");
+  if (!currentUser) {
+    return res.status(404).json({ message: "User not found" });
+  }
 
   const emailChanged =
     updates.email &&
@@ -155,7 +166,9 @@ const updateUserProfile = catchError(async (req, res) => {
       email: updates.email,
       _id: { $ne: req.user._id },
     });
-    if (conflict) throw new Error("Email already exists");
+    if (conflict) {
+      return res.status(409).json({ message: "Email already exists" });
+    }
   }
 
   if (emailChanged) {
@@ -166,7 +179,9 @@ const updateUserProfile = catchError(async (req, res) => {
     new: true,
     runValidators: true,
   });
-  if (!user) throw new Error("User not found");
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
 
   if (emailChanged) {
     sendEmail(user.email).catch(() => {});
