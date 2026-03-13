@@ -11,15 +11,27 @@ const listUsers = catchError(async (req, res) => {
 });
 
 const signIn = catchError(async (req, res) => {
-  let foundUser = req.foundUser;
-  let matchPassword = bcrypt.compareSync(req.body.password, foundUser.password);
+  const foundUser = req.foundUser;
+
+  if (!foundUser.isActive) {
+    return res.status(403).json({
+      message: "Your account has been restricted. Please contact support.",
+    });
+  }
+
+  const matchPassword = bcrypt.compareSync(
+    req.body.password,
+    foundUser.password,
+  );
 
   if (matchPassword) {
-    let token = jwt.sign(
+    const token = jwt.sign(
       { _id: foundUser._id, role: foundUser.role, email: foundUser.email },
-      "iti",
+      process.env.JWT_SECRET,
     );
+
     foundUser.password = undefined;
+
     res.json({
       message: "User signed in successfully",
       user: foundUser,
@@ -31,7 +43,7 @@ const signIn = catchError(async (req, res) => {
 });
 
 const signUp = catchError(async (req, res) => {
-  let addUser = await userModel.insertOne(req.body);
+  let addUser = await userModel.create(req.body);
   await sendEmail(req.body.email);
   addUser.password = undefined;
   res.json({ message: "User signed up successfully", user: addUser });
@@ -39,7 +51,9 @@ const signUp = catchError(async (req, res) => {
 
 const adminSignUp = catchError(async (req, res) => {
   const existing = await userModel.findOne({ email: req.body.email });
-  if (existing) throw new Error("Email already exists");
+  if (existing) {
+    return res.status(409).json({ message: "Email already exists" });
+  }
 
   const createdAdmin = await userModel.create({
     ...req.body,
@@ -69,29 +83,54 @@ const verifyAccount = catchError(async (req, res) => {
 
 const getUserAdmin = catchError(async (req, res) => {
   let id = req.params.id;
-  let user = await userModel.find({ _id: id });
+  let user = await userModel.findById(id);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
   res.json({ message: "User retrieved successfully", user });
 });
 
 const restrictUserAdmin = catchError(async (req, res) => {
-  let id = req.params.id;
+  const { id } = req.params;
+  const { isActive } = req.body;
+
+  if (typeof isActive !== "boolean") {
+    return res.status(400).json({
+      message: "isActive must be a boolean value",
+    });
+  }
+
   const user = await userModel.findByIdAndUpdate(
     id,
-    { isActive: false },
+    { isActive },
     { new: true },
   );
-  res.json({ message: "User restricted successfully", user });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const message = isActive
+    ? "User activated successfully"
+    : "User restricted successfully";
+
+  res.json({ message, user });
 });
 
 const deleteUserAdmin = catchError(async (req, res) => {
   let id = req.params.id;
   const user = await userModel.findByIdAndDelete(id);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
   res.json({ message: "User deleted successfully" });
 });
 
 const getUserProfile = catchError(async (req, res) => {
   const user = await userModel.findById(req.user._id);
-  if (!user) throw new Error("User not found");
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
   user.password = undefined;
   res.json({ message: "Profile retrieved successfully", user });
 });
@@ -114,7 +153,9 @@ const updateUserProfile = catchError(async (req, res) => {
   }
 
   const currentUser = await userModel.findById(req.user._id);
-  if (!currentUser) throw new Error("User not found");
+  if (!currentUser) {
+    return res.status(404).json({ message: "User not found" });
+  }
 
   const emailChanged =
     updates.email &&
@@ -125,7 +166,9 @@ const updateUserProfile = catchError(async (req, res) => {
       email: updates.email,
       _id: { $ne: req.user._id },
     });
-    if (conflict) throw new Error("Email already exists");
+    if (conflict) {
+      return res.status(409).json({ message: "Email already exists" });
+    }
   }
 
   if (emailChanged) {
@@ -136,7 +179,9 @@ const updateUserProfile = catchError(async (req, res) => {
     new: true,
     runValidators: true,
   });
-  if (!user) throw new Error("User not found");
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
 
   if (emailChanged) {
     sendEmail(user.email).catch(() => {});
