@@ -67,6 +67,12 @@ const restrictUserAdmin = catchError(async (req, res) => {
   );
   res.json({ message: "User restricted successfully", user });
 });
+
+const deleteUserAdmin = catchError(async (req, res) => {
+  let id = req.params.id;
+  const user = await userModel.findByIdAndDelete(id);
+  res.json({ message: "User deleted successfully" });
+});
 export {
   listUsers,
   signIn,
@@ -74,4 +80,5 @@ export {
   verifyAccount,
   getUserAdmin,
   restrictUserAdmin,
+  deleteUserAdmin,
 };
