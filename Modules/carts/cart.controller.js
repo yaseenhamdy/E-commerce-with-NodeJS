@@ -1,4 +1,3 @@
-import { decode } from 'jsonwebtoken';
 import { cartModel } from './cart.model.js';
 
 let addToCart = async (req, res) => {
