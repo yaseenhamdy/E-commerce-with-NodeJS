@@ -1,22 +1,18 @@
 import { decode } from 'jsonwebtoken';
 import { cartModel } from './cart.model.js';
 
-// let getCartItems = async (req, res) => {
-
-
-//     let cartItems = await cartModel.find()
-//         .populate("user", "-_id")
-//         .populate("items.product", "-_id name description price imageUrl")
-//         .populate("Promocode", "-_id code discountPercentage")
-
-//     if (cartItems.length == 0)
-//         res.json({ message: "Cart is empty", data: cartItems })
-
-
-//     res.json({ message: "Cart Items Returned Successfully", data: cartItems })
-// };
-
 let addToCart = async (req, res) => {
+
+    function calcTotalPrice(ItemsArray) {
+        let totalPrice = 0;
+
+        for (let i = 0; i < ItemsArray.length; i++) {
+            totalPrice += (ItemsArray[i].quantity * ItemsArray[i].price)
+        }
+
+        return totalPrice
+    }
+
 
     if (req.user.role == "customer") {
         let userId = req.user._id
@@ -27,7 +23,9 @@ let addToCart = async (req, res) => {
             price: req.body.price
         }
 
+
         let isUserExist = await cartModel.findOne({ user: userId })
+
 
         if (isUserExist) {
 
@@ -44,9 +42,16 @@ let addToCart = async (req, res) => {
             }
 
 
+            let totalPrice = calcTotalPrice(isUserExist.items)
+            isUserExist.totalPrice = totalPrice
+
+
             await isUserExist.save()
 
-            res.json({ message: "Product Added to cart successfully", data: isUserExist })
+            res.json({
+                message: "Product Added to cart successfully",
+                data: isUserExist
+            })
 
 
 
@@ -57,7 +62,16 @@ let addToCart = async (req, res) => {
                 items: [productObject]
 
             })
-            res.json({ message: "Product Added to cart successfully", data: newCart })
+
+            let totalPrice = calcTotalPrice(newCart.items)
+
+            newCart.totalPrice = totalPrice
+            await newCart.save()
+
+            res.json({
+                message: "Product Added to cart successfully",
+                data: newCart
+            })
 
         }
     }
@@ -103,7 +117,109 @@ let getUserCart = async (req, res) => {
     }
 
 
+};
+
+
+let deleteFromCart = async (req, res) => {
+
+    if (req.user.role == "customer") {
+
+        let productId = req.params.productId
+
+        let userId = req.user._id
+
+        let userCart = await cartModel.findOne({ user: userId })
+
+        if (userCart) {
+
+            userCart.items = userCart.items.filter(item => item.product.toString() != productId)
+
+            let totalPrice = 0;
+
+            for (let i = 0; i < userCart.items.length; i++) {
+                totalPrice += (userCart.items[i].quantity * userCart.items[i].price)
+            }
+            userCart.totalPrice = totalPrice
+
+            await userCart.save()
+
+            res.status(200).json({
+                message: "Product deleted successfully",
+                data: userCart
+            })
+        }
+        else {
+            res.status(404).json({
+                message: "product not found"
+            })
+
+        }
+
+
+    }
+    else {
+        res.status(403).json({ message: "You don't have permmision" })
+
+    }
+};
+
+
+let decreaseProductQuantity = async (req, res) => {
+
+    if (req.user.role == "customer") {
+
+
+        let quantityNumber = 1
+        let productId = req.body.productId
+        let userId = req.user._id
+        let userCart = await cartModel.findOne({ user: userId })
+
+        if (userCart) {
+
+            let item = userCart.items.find(item => item.product.toString() == productId)
+
+
+            if (item.quantity - quantityNumber == 0) {
+                item.deleteOne()
+            }
+            else {
+                item.quantity -= quantityNumber
+
+            }
+
+            let totalPrice = 0;
+
+            for (let i = 0; i < userCart.items.length; i++) {
+                totalPrice += (userCart.items[i].quantity * userCart.items[i].price)
+            }
+            userCart.totalPrice = totalPrice
+
+            await userCart.save()
+
+            res.status(200).json({
+                message: "quantity updated successfully",
+                data: userCart
+            })
+        }
+
+        else {
+            res.status(404).json({
+                message: "Cart Not found",
+            })
+        }
+
+
+
+    }
+    else {
+        res.status(403).json({ message: "You don't have permmision" })
+
+    }
+
+
 
 };
 
-export {  addToCart , getUserCart };
+
+
+export { addToCart, getUserCart, deleteFromCart, decreaseProductQuantity };

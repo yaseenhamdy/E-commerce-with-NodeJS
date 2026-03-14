@@ -15,11 +15,6 @@ const cartSchema = new mongoose.Schema({
       price: Number
     }
   ],
-  appliedPromo: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "Promocode" 
-  },
-  discountAmount: { type: Number, default: 0 },
   totalPrice: Number
 }, { timestamps: true });
 
