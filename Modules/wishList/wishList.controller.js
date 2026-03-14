@@ -2,72 +2,90 @@ import userModel from '../users/user.model.js'
 import Product from '../products/product.model.js'
 
 let addToWishList = async (req, res) => {
-    let userId = req.user._id
 
-    let productId = req.body.productId
+    if (req.user.role == 'customer') {
 
 
-    let currentUser = await userModel.findOne({ _id: userId })
+        let userId = req.user._id
 
-    if (currentUser) {
+        let productId = req.body.productId
 
-        let isProductExist = await Product.findOne({ _id: productId })
 
-        if (isProductExist) {
-            currentUser.wishlist.push(productId)
+        let currentUser = await userModel.findOne({ _id: userId })
 
-            await currentUser.save()
+        if (currentUser) {
 
-            res.status(200).json({ message: "Product Added to Wishlist", data: currentUser.wishlist })
+            let isProductExist = await Product.findOne({ _id: productId })
+
+            if (isProductExist) {
+                currentUser.wishlist.push(productId)
+
+                await currentUser.save()
+
+                res.status(200).json({ message: "Product Added to Wishlist", data: currentUser.wishlist })
+
+            }
+            else {
+                res.status(404).json({ message: "product not found" })
+
+            }
+
 
         }
         else {
-            res.status(404).json({ message: "product not found" })
+            res.status(404).json({ message: "user Not found" })
 
         }
 
 
     }
     else {
-        res.status(404).json({ message: "user Not found" })
+        res.status(403).json({ message: "You don't have permmision" })
 
     }
-
 };
 
 let deleteWishList = async (req, res) => {
 
-    let userId = req.user._id
+    if (req.user.role == 'customer') {
 
-    let productId = req.body.productId
+        let userId = req.user._id
+
+        let productId = req.body.productId
 
 
-    let currentUser = await userModel.findOne({ _id: userId })
+        let currentUser = await userModel.findOne({ _id: userId })
 
-    if (currentUser) {
+        if (currentUser) {
 
-        let isProductExist = await Product.findOne({ _id: productId })
+            let isProductExist = await Product.findOne({ _id: productId })
 
-        if (isProductExist) {
+            if (isProductExist) {
 
-            currentUser.wishlist = currentUser.wishlist.filter(item => item != productId)
-            currentUser.save()
-            res.status(200).json({ message: "product deleted successfully", data: currentUser.wishlist })
+                currentUser.wishlist = currentUser.wishlist.filter(item => item != productId)
+                currentUser.save()
+                res.status(200).json({ message: "product deleted successfully", data: currentUser.wishlist })
+
+
+            }
+            else {
+                res.status(404).json({ message: "product not found" })
+
+            }
 
 
         }
         else {
-            res.status(404).json({ message: "product not found" })
+            res.status(404).json({ message: "user Not found" })
 
         }
 
 
-    }
-    else {
-        res.status(404).json({ message: "user Not found" })
+    } else {
+
+        res.status(403).json({ message: "You don't have permmision" })
 
     }
 
-
-}
+};
 export { addToWishList, deleteWishList }
