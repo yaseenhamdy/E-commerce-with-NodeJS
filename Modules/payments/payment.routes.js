@@ -3,8 +3,8 @@ import verifyToken from "../../Middleware/verifyToken.js";
 import authorize from "../../Middleware/authorization.js";
 import validationMiddleware from "../../Middleware/validationMiddleware.js";
 import { ROLES } from "../../Constants/roles.js";
-import {createCheckoutSession,getMyPayments,getPaymentByOrderId,getPaymentById} from "./payment.controller.js";
-import { createCheckoutSessionSchema } from "./payment.validation.js";
+import {createCheckoutSession,selectCashOnDelivery,getMyPayments,getPaymentByOrderId,getPaymentById} from "./payment.controller.js";
+import { createCheckoutSessionSchema, cashOnDeliverySchema } from "./payment.validation.js";
 
 const paymentRoutes = express.Router();
 
@@ -14,6 +14,14 @@ paymentRoutes.post(
     authorize(ROLES.CUSTOMER),
     validationMiddleware(createCheckoutSessionSchema),
     createCheckoutSession
+);
+
+paymentRoutes.post(
+    "/payments/cash-on-delivery",
+    verifyToken,
+    authorize(ROLES.CUSTOMER),
+    validationMiddleware(cashOnDeliverySchema),
+    selectCashOnDelivery
 );
 
 paymentRoutes.get(
