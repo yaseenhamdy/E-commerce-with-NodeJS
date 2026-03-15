@@ -22,8 +22,8 @@ const createProductValidation = joi.object({
     price: joi.number().min(1).required().messages({
         "number.min": "Product price must be greater than 0"
     }),
-    stock: joi.number().integer().min(0).required().messages({
-        "number.min": "Product stock cannot be negative"
+    stock: joi.number().integer().min(1).required().messages({
+        "number.min": "Product stock must be at least 1 when creating a product"
     }),
     category: joi.string().custom(objectIdValidation, "ObjectId validation").required().messages({
         "any.required": "Product category is required"

@@ -7,6 +7,7 @@ import {
     deleteProduct,
     getPendingProducts,
     approveProduct,
+    getMyProducts
 } from "./product.controller.js";
 import verifyToken from "../../Middleware/verifyToken.js";
 import authorize from "../../Middleware/authorization.js";
@@ -31,6 +32,13 @@ productRoutes.get(
     getPendingProducts
 );
 
+
+productRoutes.get(
+    "/products/my-products",
+    verifyToken,
+    authorize(ROLES.SELLER),
+    getMyProducts
+);
 
 productRoutes.get("/products/:id", validationMiddleware(getOrDeleteProductValidation), getProductById);
 
