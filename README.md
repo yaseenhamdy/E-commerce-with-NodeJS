@@ -176,29 +176,29 @@ Sample accounts:
 - `GET /products` - Get all approved products
 - `GET /products/:id` - Get product by ID
 - `POST /products` - Create product (seller only)
-- `PATCH /products/:id` - Update product (seller only, own products)
+- `PUT /products/:id` - Update product (seller only, own products)
 - `DELETE /products/:id` - Delete product (seller only, own products)
 - `GET /products/pending` - Get pending products (admin only)
-- `PATCH /products/:id/approve` - Approve product (admin only)
+- `PUT /products/:id/approve` - Approve product (admin only)
 - `GET /products/my-products` - Get seller's products (seller only)
 
 ### Categories
 - `GET /categories` - Get all categories
 - `POST /categories` - Create category (admin only)
-- `PATCH /categories/:id` - Update category (admin only)
+- `PUT /categories/:id` - Update category (admin only)
 - `DELETE /categories/:id` - Delete category (admin only)
 
 ### Cart
 - `POST /cart` - Add to cart (customer only)
 - `GET /cart` - Get user cart (customer only)
 - `DELETE /cart/:productId` - Remove from cart (customer only)
-- `PATCH /cart/decrease` - Decrease quantity (customer only)
+- `PUT /cart/decrease` - Decrease quantity (customer only)
 
 ### Orders
 - `POST /orders` - Create order (customer only)
 - `GET /orders` - Get user orders (customer only)
 - `GET /orders/:id` - Get order by ID (customer only)
-- `PATCH /orders/:id/cancel` - Cancel order (customer only)
+- `PUT /orders/:id/cancel` - Cancel order (customer only)
 
 ### Payments
 - `POST /payments/create-payment-intent` - Create payment intent (customer only)
@@ -206,13 +206,13 @@ Sample accounts:
 ### Reviews
 - `GET /reviews/:productId` - Get reviews for product
 - `POST /reviews` - Create review (customer only)
-- `PATCH /reviews/:id` - Update review (customer only, own reviews)
+- `PUT /reviews/:id` - Update review (customer only, own reviews)
 - `DELETE /reviews/:id` - Delete review (customer only, own reviews)
 
 ### Promocodes
 - `GET /promocodes` - Get all promocodes (admin only)
 - `POST /promocodes` - Create promocode (admin only)
-- `PATCH /promocodes/:id` - Update promocode (admin only)
+- `PUT /promocodes/:id` - Update promocode (admin only)
 - `DELETE /promocodes/:id` - Delete promocode (admin only)
 
 ### Wishlist
