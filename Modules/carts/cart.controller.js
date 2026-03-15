@@ -1,4 +1,6 @@
 import { cartModel } from './cart.model.js';
+import Product from '../products/product.model.js'
+
 
 let addToCart = async (req, res) => {
 
@@ -22,57 +24,68 @@ let addToCart = async (req, res) => {
             price: req.body.price
         }
 
+        let isProductInProducts = await Product.findOne({ _id: productObject.product })
 
-        let isUserExist = await cartModel.findOne({ user: userId })
+        if (isProductInProducts) {
+
+            let isUserExist = await cartModel.findOne({ user: userId })
 
 
-        if (isUserExist) {
+            if (isUserExist) {
 
-            let isProductExist = await isUserExist.items.find(
-                item => req.body.product == item.product.toString()
-            )
+                let isProductExist = await isUserExist.items.find(
+                    item => req.body.product == item.product.toString()
+                )
 
-            if (isProductExist) {
-                isProductExist.quantity += req.body.quantity
+                if (isProductExist) {
+                    isProductExist.quantity += req.body.quantity
+                }
+                else {
+                    isUserExist.items.push(productObject)
+
+                }
+
+
+                let totalPrice = calcTotalPrice(isUserExist.items)
+                isUserExist.totalPrice = totalPrice
+
+
+                await isUserExist.save()
+
+                res.json({
+                    message: "Product Added to cart successfully",
+                    data: isUserExist
+                })
+
+
+
             }
             else {
-                isUserExist.items.push(productObject)
+                let newCart = await cartModel.create({
+                    user: userId,
+                    items: [productObject]
+
+                })
+
+                let totalPrice = calcTotalPrice(newCart.items)
+
+                newCart.totalPrice = totalPrice
+                await newCart.save()
+
+                res.json({
+                    message: "Product Added to cart successfully",
+                    data: newCart
+                })
 
             }
-
-
-            let totalPrice = calcTotalPrice(isUserExist.items)
-            isUserExist.totalPrice = totalPrice
-
-
-            await isUserExist.save()
-
-            res.json({
-                message: "Product Added to cart successfully",
-                data: isUserExist
-            })
-
 
 
         }
         else {
-            let newCart = await cartModel.create({
-                user: userId,
-                items: [productObject]
-
-            })
-
-            let totalPrice = calcTotalPrice(newCart.items)
-
-            newCart.totalPrice = totalPrice
-            await newCart.save()
-
-            res.json({
-                message: "Product Added to cart successfully",
-                data: newCart
-            })
+            res.status(404).json({ message: "product not found" })
 
         }
+
     }
     else {
         res.status(403).json({ message: "You don't have permmision" })
@@ -125,34 +138,47 @@ let deleteFromCart = async (req, res) => {
 
         let productId = req.params.productId
 
-        let userId = req.user._id
+        let isProductInProducts = await Product.findOne({ _id: productId })
 
-        let userCart = await cartModel.findOne({ user: userId })
+        if (isProductInProducts) {
 
-        if (userCart) {
+            let userId = req.user._id
 
-            userCart.items = userCart.items.filter(item => item.product.toString() != productId)
+            let userCart = await cartModel.findOne({ user: userId })
 
-            let totalPrice = 0;
+            if (userCart) {
 
-            for (let i = 0; i < userCart.items.length; i++) {
-                totalPrice += (userCart.items[i].quantity * userCart.items[i].price)
+                userCart.items = userCart.items.filter(item => item.product.toString() != productId)
+
+                let totalPrice = 0;
+
+                for (let i = 0; i < userCart.items.length; i++) {
+                    totalPrice += (userCart.items[i].quantity * userCart.items[i].price)
+                }
+                userCart.totalPrice = totalPrice
+
+                await userCart.save()
+
+                res.status(200).json({
+                    message: "Product deleted successfully",
+                    data: userCart
+                })
             }
-            userCart.totalPrice = totalPrice
+            else {
+                res.status(404).json({
+                    message: "product not found"
+                })
 
-            await userCart.save()
+            }
 
-            res.status(200).json({
-                message: "Product deleted successfully",
-                data: userCart
-            })
+
+
         }
         else {
-            res.status(404).json({
-                message: "product not found"
-            })
+            res.status(404).json({ message: "product not found" })
 
         }
+
 
 
     }
@@ -170,42 +196,55 @@ let decreaseProductQuantity = async (req, res) => {
 
         let quantityNumber = 1
         let productId = req.body.productId
-        let userId = req.user._id
-        let userCart = await cartModel.findOne({ user: userId })
-
-        if (userCart) {
-
-            let item = userCart.items.find(item => item.product.toString() == productId)
 
 
-            if (item.quantity - quantityNumber == 0) {
-                item.deleteOne()
+        let isProductInProducts = await Product.findOne({ _id: productId })
+
+        if (isProductInProducts) {
+            let userId = req.user._id
+            let userCart = await cartModel.findOne({ user: userId })
+
+            if (userCart) {
+
+                let item = userCart.items.find(item => item.product.toString() == productId)
+
+
+                if (item.quantity - quantityNumber == 0) {
+                    item.deleteOne()
+                }
+                else {
+                    item.quantity -= quantityNumber
+
+                }
+
+                let totalPrice = 0;
+
+                for (let i = 0; i < userCart.items.length; i++) {
+                    totalPrice += (userCart.items[i].quantity * userCart.items[i].price)
+                }
+                userCart.totalPrice = totalPrice
+
+                await userCart.save()
+
+                res.status(200).json({
+                    message: "quantity updated successfully",
+                    data: userCart
+                })
             }
+
             else {
-                item.quantity -= quantityNumber
-
+                res.status(404).json({
+                    message: "Cart Not found",
+                })
             }
 
-            let totalPrice = 0;
-
-            for (let i = 0; i < userCart.items.length; i++) {
-                totalPrice += (userCart.items[i].quantity * userCart.items[i].price)
-            }
-            userCart.totalPrice = totalPrice
-
-            await userCart.save()
-
-            res.status(200).json({
-                message: "quantity updated successfully",
-                data: userCart
-            })
         }
-
         else {
-            res.status(404).json({
-                message: "Cart Not found",
-            })
+            res.status(404).json({ message: "product not found" })
+
         }
+
+
 
 
 
