@@ -53,7 +53,7 @@ const getProducts = catchError(async (req, res) => {
 
 const getProductById = catchError(async (req, res) => {
     const { id } = req.params;
-    
+
     const product = await Product.findOne({ _id: id, isActive: true, isApproved: true })
         .populate("category", "name")
         .populate("seller", "name");
@@ -106,7 +106,7 @@ const deleteProduct = catchError(async (req, res) => {
 });
 
 const getPendingProducts = catchError(async (req, res) => {
-    // جلب المنتجات الفعالة ولكن غير معتمدة بعد
+
     const products = await Product.find({ isActive: true, isApproved: false })
         .populate("category", "name")
         .populate("seller", "name");
@@ -130,6 +130,16 @@ const approveProduct = catchError(async (req, res) => {
     res.status(200).json({ message: "Product approved successfully", product });
 });
 
+const getMyProducts = catchError(async (req, res) => {
+    const sellerId = req.user._id;
+
+
+    const products = await Product.find({ seller: sellerId })
+        .populate("category", "name");
+
+    res.status(200).json({ message: "Your products retrieved successfully", products });
+});
+
 export {
     createProduct,
     getProducts,
@@ -137,7 +147,8 @@ export {
     updateProduct,
     deleteProduct,
     getPendingProducts,
-    approveProduct
+    approveProduct,
+    getMyProducts
 };
 
 
