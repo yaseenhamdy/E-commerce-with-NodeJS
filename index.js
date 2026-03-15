@@ -12,6 +12,7 @@ import orderRoutes from "./Modules/orders/order.routes.js";
 
 import connectDB from "./Database/connect_db.js";
 import { runSeedUsers } from "./seed_data/seedUsers.js";
+import promocodeRoutes from "./Modules/promocodes/promocode.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +28,7 @@ app.use(productRoutes);
 app.use(reviewRoutes);
 app.use(wishListRoutes);
 app.use(orderRoutes);
+app.use([promocodeRoutes])
 
 // Basic health check route
 app.get("/", (req, res) => {
