@@ -1,8 +1,10 @@
 import orderModel from "./order.model.js";
 import { cartModel } from "../carts/cart.model.js";
 import promocodeModel from "../promocodes/promocode.model.js";
+import userModel from "../users/user.model.js";
 import { ROLES } from "../../Constants/roles.js";
 import catchError from "../../Middleware/catchError.js";
+import { sendOrderStatusEmail } from "../../Email/email.js";
 
 const createOrder = catchError(async (req, res) => {
   const userId = req.user._id;
@@ -100,7 +102,6 @@ const getOrders = catchError(async (req, res) => {
       .populate("items.product", "name")
       .populate("items.seller", "name email");
 
-    // order.controller.js
   } else if (req.user.role === ROLES.SELLER) {
     orders = await orderModel
       .find({ "items.seller": req.user._id })
@@ -113,7 +114,7 @@ const getOrders = catchError(async (req, res) => {
       );
 
       return {
-        orderId: order._id, 
+        orderId: order._id,
         orderStatus: order.status,
         items: sellerItems.map((item) => ({
           itemId: item._id,
@@ -189,8 +190,21 @@ const updateOrderStatus = catchError(async (req, res) => {
     return res.status(404).json({ message: "Order not found" });
   }
 
+  const previousStatus = order.status;
   order.status = status;
   await order.save();
+
+  if (previousStatus !== status) {
+    const customer = await userModel
+      .findById(order.customer)
+      .select("email");
+
+    await sendOrderStatusEmail({
+      to: customer?.email,
+      orderId: order._id.toString(),
+      status,
+    });
+  }
 
   return res.status(200).json({
     message: "Order status updated successfully",
