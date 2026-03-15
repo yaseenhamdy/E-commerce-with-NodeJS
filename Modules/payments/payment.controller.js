@@ -77,7 +77,7 @@ const createCheckoutSession = catchError(async (req, res) => {
         },
         {
             upsert: true,
-            new: true,
+            returnDocument: "after",
             setDefaultsOnInsert: true
         }
     );
@@ -197,7 +197,7 @@ const stripeWebhookHandler = catchError(async (req, res) => {
                     stripeCheckoutSessionId: session.id,
                     stripePaymentIntentId: paymentIntentId
                 },
-                { upsert: true, new: true, setDefaultsOnInsert: true }
+                { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
             );
 
             await orderModel.findByIdAndUpdate(orderId, { status: "paid" });
@@ -210,7 +210,7 @@ const stripeWebhookHandler = catchError(async (req, res) => {
         await paymentModel.findOneAndUpdate(
             { stripeCheckoutSessionId: session.id },
             { status: "failed" },
-            { new: true }
+            { returnDocument: "after" }
         );
     }
 
@@ -226,7 +226,7 @@ const stripeWebhookHandler = catchError(async (req, res) => {
                         ? paymentIntent.latest_charge
                         : paymentIntent.latest_charge?.id
             },
-            { new: true }
+            { returnDocument: "after" }
         );
     }
 
@@ -236,11 +236,59 @@ const stripeWebhookHandler = catchError(async (req, res) => {
         await paymentModel.findOneAndUpdate(
             { stripePaymentIntentId: paymentIntent.id },
             { status: "failed" },
-            { new: true }
+            { returnDocument: "after" }
         );
     }
 
     return res.status(200).json({ received: true });
 });
 
-export {createCheckoutSession,getMyPayments,getPaymentByOrderId,getPaymentById,stripeWebhookHandler};
+const selectCashOnDelivery = catchError(async (req, res) => {
+    const { orderId } = req.body;
+
+    const order = await orderModel.findById(orderId);
+
+    if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.customer.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: "You can only pay your own orders" });
+    }
+
+    if (order.status === "paid") {
+        return res.status(400).json({ message: "Order is already paid" });
+    }
+
+    if (!order.items?.length) {
+        return res.status(400).json({ message: "Order has no items" });
+    }
+
+    const payment = await paymentModel.findOneAndUpdate(
+        { order: order._id, user: req.user._id },
+        {
+            order: order._id,
+            user: req.user._id,
+            amount: order.total,
+            currency: (process.env.STRIPE_CURRENCY || "egp").toLowerCase(),
+            paymentMethod: "cash",
+            status: "pending",
+            stripeCheckoutSessionId: undefined,
+            stripePaymentIntentId: undefined,
+            stripeChargeId: undefined,
+            stripeRefundId: undefined
+        },
+        {
+            upsert: true,
+            returnDocument: "after",
+            setDefaultsOnInsert: true
+        }
+    );
+
+    return res.status(200).json({
+        message: "Cash on delivery selected successfully",
+        data: payment
+    });
+});
+
+export { createCheckoutSession, selectCashOnDelivery, getMyPayments, getPaymentByOrderId, getPaymentById, stripeWebhookHandler };

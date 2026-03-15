@@ -3,8 +3,8 @@ import verifyToken from "../../Middleware/verifyToken.js";
 import authorize from "../../Middleware/authorization.js";
 import validationMiddleware from "../../Middleware/validationMiddleware.js";
 import { ROLES } from "../../Constants/roles.js";
-import {createPromocode,getPromocodes,getPromocodeById,updatePromocode,deletePromocode} from "./promocode.controller.js";
-import { createPromocodeSchema, updatePromocodeSchema } from "./promocode.validation.js";
+import { createPromocode, getPromocodes, getPromocodeById, updatePromocode, deletePromocode } from "./promocode.controller.js";
+import { createPromocodeSchema, updatePromocodeSchema, promocodeIdSchema } from "./promocode.validation.js";
 
 const promocodeRoutes = express.Router();
 
@@ -27,6 +27,7 @@ promocodeRoutes.get(
   "/promocodes/:id",
   verifyToken,
   authorize(ROLES.ADMIN),
+  validationMiddleware(promocodeIdSchema),
   getPromocodeById
 );
 
@@ -42,6 +43,7 @@ promocodeRoutes.delete(
   "/promocodes/:id",
   verifyToken,
   authorize(ROLES.ADMIN),
+  validationMiddleware(promocodeIdSchema),
   deletePromocode
 );
 
