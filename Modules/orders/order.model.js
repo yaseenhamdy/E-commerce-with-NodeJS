@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
   customer: {
@@ -49,4 +49,5 @@ const orderSchema = new mongoose.Schema({
   total: Number
 }, { timestamps: true });
 
-module.exports = mongoose.model('Order', orderSchema);
+const orderModel = mongoose.model("Order", orderSchema);
+export default orderModel;

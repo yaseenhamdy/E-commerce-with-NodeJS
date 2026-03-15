@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const promoSchema = new mongoose.Schema({
   code: { type: String, required: true, unique: true },
@@ -9,4 +9,5 @@ const promoSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Promocode', promoSchema);
+const promocodeModel = mongoose.model("Promocode", promoSchema);
+export default promocodeModel;
