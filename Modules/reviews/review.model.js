@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const reviewSchema = new mongoose.Schema({
   user: {
@@ -15,4 +15,7 @@ const reviewSchema = new mongoose.Schema({
   comment: String
 }, { timestamps: true });
 
-module.exports = mongoose.model('Review', reviewSchema);
+reviewSchema.index({ user: 1, product: 1 }, { unique: true });
+
+const reviewModel = mongoose.model("Review", reviewSchema);
+export default reviewModel;

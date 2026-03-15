@@ -6,6 +6,8 @@ import userRoutes from "./Modules/users/user.routes.js";
 import cartRoutes from "./Modules/carts/cart.routes.js";
 import categoryRoutes from "./Modules/categories/category.routes.js";
 import productRoutes from "./Modules/products/product.routes.js";
+import reviewRoutes from "./Modules/reviews/review.routes.js";
+import wishListRoutes from "./Modules/wishList/wishList.routes.js"
 
 import connectDB from "./Database/connect_db.js";
 import { runSeedUsers } from "./seed_data/seedUsers.js";
@@ -21,6 +23,8 @@ app.use(userRoutes);
 app.use(cartRoutes);
 app.use(categoryRoutes);
 app.use(productRoutes);
+app.use(reviewRoutes);
+app.use(wishListRoutes);
 
 // Basic health check route
 app.get("/", (req, res) => {
