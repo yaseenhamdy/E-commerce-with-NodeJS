@@ -30,6 +30,10 @@ export const createOrderSchema = joi.object({
 });
 
 export const updateOrderStatusSchema = joi.object({
+  id: joi.string().hex().length(24).required().messages({
+    "any.required": "Order ID is required",
+    "string.length": "Invalid order ID",
+  }),
   status: joi
     .string()
     .valid("pending", "paid", "shipped", "delivered", "canceled")
@@ -42,6 +46,10 @@ export const updateOrderStatusSchema = joi.object({
 });
 
 export const updateItemStatusSchema = joi.object({
+  id: joi.string().hex().length(24).required().messages({
+    "any.required": "Order ID is required",
+    "string.length": "Invalid order ID",
+  }),
   itemId: joi.string().hex().length(24).required().messages({
     "any.required": "Item ID is required",
     "string.length": "Invalid item ID",

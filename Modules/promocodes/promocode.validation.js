@@ -26,6 +26,10 @@ const createPromocodeSchema = Joi.object({
 });
 
 const updatePromocodeSchema = Joi.object({
+  id: Joi.string().hex().length(24).required().messages({
+    "string.length": "Invalid promocode ID",
+    "any.required": "Promocode ID is required"
+  }),
   code: Joi.string().uppercase().optional().messages({
     "string.base": "Code must be a string",
     "string.empty": "Code cannot be empty"
@@ -46,6 +50,13 @@ const updatePromocodeSchema = Joi.object({
   isActive: Joi.boolean().optional().messages({
     "boolean.base": "isActive must be a boolean"
   })
-}).unknown(true);
+});
 
-export { createPromocodeSchema, updatePromocodeSchema };
+const promocodeIdSchema = Joi.object({
+  id: Joi.string().hex().length(24).required().messages({
+    "string.length": "Invalid promocode ID",
+    "any.required": "Promocode ID is required"
+  })
+});
+
+export { createPromocodeSchema, updatePromocodeSchema, promocodeIdSchema };
